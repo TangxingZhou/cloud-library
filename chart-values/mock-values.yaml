@@ -1,0 +1,8 @@
+users:
+  - name: test
+    comId: "786f4b7839765870374e"
+    hive:
+      php:
+        host: 172.16.12.10
+        user: root
+        password: test

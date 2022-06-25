@@ -1,0 +1,43 @@
+# helm repo add harbor https://helm.goharbor.io
+# helm install harbor harbor/harbor
+imagePullSecrets: []
+expose:
+  type: nodePort
+  tls:
+    enabled: false
+externalURL: http://localhost:30002
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      storageClass: local-storage
+      size: 5Gi
+      # user: 10000(harbor) # writeable
+    chartmuseum:
+      storageClass: local-storage
+      size: 5Gi
+      # user: 10000(chart) # writeable
+    jobservice:
+      storageClass: local-storage
+      size: 1Gi
+      # user: 10000(harbor)
+    # If external database is used, the following settings for database will
+    # be ignored
+    database:
+      storageClass: local-storage
+      size: 1Gi
+      # user: 999(postgres) # writeable
+    # If external Redis is used, the following settings for Redis will
+    # be ignored
+    redis:
+      storageClass: local-storage
+      size: 1Gi
+      # user: 999(redis) # writeable
+    trivy:
+      storageClass: local-storage
+      size: 5Gi
+      # user: 10000(scanner) # writeable
+trivy:
+  # enabled the flag to enable Trivy scanner
+  enabled: true
+harborAdminPassword: "123456"

@@ -1,0 +1,302 @@
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install prometheus prometheus-community/prometheus
+imagePullSecrets: []
+
+alertmanager:
+  enable: true
+  image:
+    repository: prom/alertmanager
+  persistentVolume:
+    ## If true, alertmanager will create/use a Persistent Volume Claim
+    ## If false, use emptyDir
+    enabled: true
+    storageClass: local-storage
+    mountPath: /data
+    subPath: ""
+    # user: 65534(nobody)
+  # emptyDir:
+  #   sizeLimit: 2Gi
+#   extraConfigmapMounts: []
+#     - name: template-files
+#       mountPath: /usr/local/prometheus/alertmanager/template/
+#       configMap: alertmanager-template-files
+#       readOnly: true
+# alertmanagerFiles:
+#   alertmanager.yml:
+#     global:
+#         # 每一分钟检查一次是否恢复
+#         smtp_smarthost: "smtp.qq.com:465" ###邮箱服务端
+#         smtp_from:  "416623493@qq.com"   ###发件人邮箱
+#         smtp_auth_username: "416623493@qq.com"   ###发件人邮箱认证
+#         smtp_auth_password: "hkwsikfyxofqbghb"   #授权码
+#         smtp_require_tls: false
+#         resolve_timeout: 1m
+#     templates:
+#       - '/usr/local/prometheus/alertmanager/template/*.tmpl'
+#     route:
+#       receiver: 'default'
+#       group_by: ['alertname']
+#       # 当一个新的报警分组被创建后，需要等待至少group_wait时间来初始化通知，这种方式可以确保您能有足够的时间为同一分组来获取多个警报，然后一起触发这个报警信息。
+#       group_wait: 10s
+#       # 当第一个报警发送后，等待'group_interval'时间来发送新的一组报警信息。
+#       group_interval: 1m
+#       # 如果一个报警信息已经发送成功了，等待'repeat_interval'时间来重新发送他们
+#       repeat_interval: 10m
+#       # 默认的receiver：如果一个报警没有被一个route匹配，则发送给默认的接收器
+#     #  routes:
+#     #    - receiver: webhook
+#     #      match_re:
+#     #        team: node
+#     receivers:
+#     - name: 'default'
+#       webhook_configs:
+#       #- url: 'https://oapi.dingtalk.com/robot/send?access_token=13128f851b4f6cfda7e0827501229924a69efab83d35945213d8128e9b3c607a'
+#       - url: 'http://dingtalk:8060/dingtalk/webhook/send'
+#         send_resolved: true # 发送已解决通知
+#       email_configs:
+#       - to: '156130879@qq.com'
+#         send_resolved: true
+
+kubeStateMetrics:
+  enabled: true
+kube-state-metrics:
+  image:
+    repository: lank8s.cn/kube-state-metrics/kube-state-metrics
+
+nodeExporter:
+  enabled: true
+  extraArgs:
+    collector.arp:
+    collector.bcache:
+    collector.bonding:
+    no-collector.buddyinfo:
+    collector.conntrack:
+    collector.cpu:
+    collector.diskstats:
+    no-collector.drbd:
+    collector.edac:
+    collector.entropy:
+    collector.filefd:
+    collector.filesystem:
+    collector.hwmon:
+    collector.infiniband:
+    no-collector.interrupts:
+    collector.ipvs:
+    no-collector.ksmd:
+    collector.loadavg:
+    no-collector.logind:
+    collector.mdadm:
+    collector.meminfo:
+    no-collector.meminfo_numa:
+    no-collector.mountstats:
+    collector.netdev:
+    collector.netstat:
+    collector.nfs:
+    collector.nfsd:
+    no-collector.ntp:
+    no-collector.processes:
+    no-collector.qdisc:
+    no-collector.runit:
+    collector.sockstat:
+    collector.stat:
+    no-collector.supervisord:
+    no-collector.systemd:
+    no-collector.tcpstat:
+    collector.textfile:
+    collector.time:
+    collector.timex:
+    collector.uname:
+    collector.vmstat:
+    no-collector.wifi:
+    collector.xfs:
+    collector.zfs:
+
+pushgateway:
+  enabled: true
+
+server:
+  enabled: true
+  # retention: 15d
+  # configPath: /etc/config/prometheus.yml
+  global:
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    evaluation_interval: 15s
+  service:
+    type: NodePort
+  persistentVolume:
+    enabled: true
+    storageClass: local-storage
+    mountPath: /data
+    subPath: ""
+    # user: 65534(nobody)
+  # emptyDir:
+  #   sizeLimit: 8Gi
+  # alertmanagers:
+  #   - static_configs:
+  #       - targets: ["alertmanager:9093"]
+# serverFiles:
+#   # Alerts configuration
+#   # Ref: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+#   alerting_rules.yml:
+#     groups:
+#     - name: middle-platform
+#       rules:
+#       - alert: POD_CPU_USE
+#         expr: sum by(pod,namespace,instance)(rate(container_cpu_usage_seconds_total{pod!=""}[5m])) > 4
+#         for: 30s
+#         labels:
+#            severity: warning
+#            team: node
+#         annotations:
+#            summary: "容器 CPU 使用负载告警"
+#            description: "节点 {{ $labels.instance }} 命名空间 {{ $labels.namespace }} 容器 {{ $labels.pod }} CPU 资源使用大于4, 当前值 {{ $value }}"
+#       - alert: NODE_MEMORY_USAGE
+#         expr: (1 - sum(node_memory_MemAvailable_bytes) by (instance) / sum(node_memory_MemTotal_bytes) by (instance)) > 0.85
+#         for: 30s
+#         labels:
+#           severity: warning
+#           team: node
+#         annotations:
+#           summary: "节点 memory 使用率告警"
+#           description: "节点 {{ $labels.instance }} 内存使用率大于85%, 当前值 {{ $value }}"
+#       - alert: NODE_CPU_USAGE
+#         expr: 100 * (1 - avg(irate(node_cpu_seconds_total{mode="idle"}[2m])) by(instance)) > 85
+#         for: 30s
+#         labels:
+#           severity: warning
+#           team: node
+#         annotations:
+#           summary: "节点 CPU 使用率告警"
+#           description: "节点 {{ $labels.instance }} CPU使用率持续2分钟大于85%, 当前值 {{ $value }}"
+#       - alert: node_disk_usage
+#         expr: (1 - node_filesystem_avail_bytes{job="node-exporter",fstype=~"ext4|xfs"} / node_filesystem_size_bytes{job="node-exporter",fstype=~"ext4|xfs"}) * 100 > 85
+#         for: 300s
+#         labels:
+#          severity: warning
+#          team: node
+#         annotations:
+#          summary: "主机磁盘负载告警"
+#          description: "节点 {{ $labels.instance }} 分区 {{ $labels.device}} 资源使用率大于 85%, 当前值 {{ $value }}"
+#       - alert: PVC_USAGE
+#         expr: (max by (persistentvolumeclaim,namespace) (kubelet_volume_stats_used_bytes )) / (max by (persistentvolumeclaim,namespace) (kubelet_volume_stats_capacity_bytes )) * 100 > 85
+#         for: 60s
+#         labels:
+#           severity: warning
+#           team: node
+#         annotations:
+#           summary: "PVC使用率告警"
+#           description: "命名空间 {{ $labels.namespace }} PVC {{ $labels.persistentvolumeclaim }}使用率大于85%, 当前值 {{ $value }}"
+#       - alert: NODE_STATUS_ERROR
+#         expr: kube_node_status_condition{condition="Ready", status!="true"} == 1
+#         for: 60s
+#         labels:
+#           severity: critical
+#           team: node
+#         annotations:
+#           summary: "NODE状态错误严重告警"
+#           description: "节点 {{ $labels.node }} 状态异常严重告警"
+#       - alert: Cluster_Pod_Count
+#         expr: count(count by (pod)(kube_pod_container_info{pod!=""})) > 200
+#         for: 30s
+#         labels:
+#           severity: warning
+#           team: node
+#         annotations:
+#           summary: "集群POD过大"
+#           description: "集群POD大于200, 当前值 {{ $value }}"
+
+#   prometheus.yml:
+#     scrape_configs:
+#       - job_name: prometheus
+#         static_configs:
+#           - targets:
+#             - localhost:9090
+extraScrapeConfigs: |
+  - job_name: 'kubernetes-cadvisor'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecure_skip_verify: true
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    metric_relabel_configs:
+      - source_labels: [instance]
+        separator: ;
+        regex: (.+)
+        target_label: node
+        replacement: $1
+        action: replace
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+      - source_labels: [pod_name]
+        separator: ;
+        regex: (.+)
+        target_label: pod
+        replacement: $1
+        action: replace
+      - source_labels: [container_name]
+        separator: ;
+        regex: (.+)
+        target_label: container
+        replacement: $1
+        action: replace
+  - job_name: kube-state-metrics
+    kubernetes_sd_configs:
+      - role: endpoints
+        # namespaces:
+        #   names:
+        #   - kube-system
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+        regex: kube-state-metrics
+        replacement: $1
+        action: keep
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: k8s_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: k8s_sname
+  - job_name: 'kubernetes-ingresses'
+    kubernetes_sd_configs:
+      - role: ingress
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_ingress_annotation_prometheus_io_probe]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
+        regex: (.+);(.+);(.+)
+        replacement: ${1}://${2}${3}
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox-exporter.example.com:9115
+      - source_labels: [__param_target]
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_ingress_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_ingress_name]
+        target_label: kubernetes_name
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_address_InternalIP]
+        regex: (.+)
+        action: replace
+        target_label: __address__
+        replacement: ${1}:9100

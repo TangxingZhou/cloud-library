@@ -1,0 +1,66 @@
+# helm repo add grafana https://grafana.github.io/helm-charts
+# helm install grafana grafana/grafana
+adminUser: admin
+adminPassword: admin
+image:
+  pullSecrets: []
+service:
+  type: NodePort
+testFramework:
+  enabled: false
+dashboardProviders:
+ dashboardproviders.yaml:
+   apiVersion: 1
+   providers:
+   - name: 'default'
+     orgId: 1
+     folder: ''
+     type: file
+     disableDeletion: false
+     editable: true
+     options:
+       path: /var/lib/grafana/dashboards/default
+persistence:
+  enabled: false
+  # storageClassName: local-storage
+  # user: 472(grafana)
+dashboards:
+  default:
+    # node-exporter:
+    #   # This is a path to a file inside the dashboards directory inside the chart directory
+    #   file: grafana-dashboards/node.json
+    node-exporter:
+      # Ref: https://grafana.com/dashboards/8919
+      gnetId: 8919
+      revision: 25
+      datasource: Prometheus
+    # kubernetes-cluster-monitoring:
+    #   file: grafana-dashboards/pod.json
+    kubernetes-cluster-monitoring:
+      # Ref: https://grafana.com/dashboards/14205
+      gnetId: 14205
+      revision: 1
+      datasource: Prometheus
+    # kubernetes-storage:
+    #   file: grafana-dashboards/pvc.json
+    kubernetes-storage:
+      # Ref: https://grafana.com/dashboards/11454
+      gnetId: 11454
+      revision: 14
+      datasource: Prometheus
+    prometheus-stats:
+      # Ref: https://grafana.com/dashboards/2
+      gnetId: 2
+      revision: 2
+      datasource: Prometheus
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server
+      access: proxy
+      isDefault: true
+      readOnly: false
+      editable: true

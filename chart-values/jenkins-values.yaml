@@ -1,0 +1,8 @@
+# helm repo add jenkins https://charts.jenkins.io
+# helm install jenkins jenkins/jenkins
+controller:
+  adminPassword: admin
+  serviceType: NodePort
+persistence:
+  storageClass: local-storage
+  # user：1000(jenkins) # writeable

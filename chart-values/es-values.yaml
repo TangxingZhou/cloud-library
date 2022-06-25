@@ -1,0 +1,39 @@
+# helm repo add elastic https://helm.elastic.co
+# helm install elasticsearch elastic/elasticsearch
+clusterName: "elasticsearch"
+antiAffinity: "soft"
+
+image: elasticsearch
+imagePullSecrets: []
+replicas: 1
+extraEnvs:
+  - name: ELASTIC_PASSWORD
+    value: elastic
+service:
+  type: NodePort
+persistence:
+  enabled: true
+  # user: 1000(elasticsearch) # writeable
+volumeClaimTemplate:
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 30Gi
+lifecycle:
+  postStart:
+    exec:
+      command:
+        - bash
+        - -c
+        - |
+          #!/bin/bash
+          # Add index
+          INDEX_NAME=elastic
+          SHARD_COUNT=8
+          REPLICA_COUNT=1
+          ES_URL=http://localhost:9200
+          while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
+          curl -XPUT "$ES_URL/$INDEX_NAME" -H 'Content-Type: application/json' -d'{"settings":{"number_of_shards":'$SHARD_COUNT',"number_of_replicas":'$REPLICA_COUNT'}}'
+clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+tests:
+  enabled: true

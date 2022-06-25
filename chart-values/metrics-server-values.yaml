@@ -1,0 +1,14 @@
+# helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+# helm install metrics-server metrics-server/metrics-server --version 3.7.0
+# image:
+#   repository: lank8s.cn/metrics-server/metrics-server
+#   tag: "0.5.2"
+args:
+  - --kubelet-insecure-tls
+# affinity:
+#   nodeAffinity:
+#       requiredDuringSchedulingIgnoredDuringExecution:
+#         nodeSelectorTerms:
+#         - matchExpressions:
+#           - key: node-role.kubernetes.io/master
+#             operator: Exists

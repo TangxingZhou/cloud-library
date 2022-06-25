@@ -1,0 +1,51 @@
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+# helm install kafka bitnami/kafka
+global:
+  imagePullSecrets:
+    - connect-mock
+deleteTopicEnable: true
+maxMessageBytes: _33554432
+listeners:
+  - CLIENT://:9092
+  - INTERNAL://:9093
+  - EXTERNAL://:9094
+listenerSecurityProtocolMap: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CLIENT:PLAINTEXT
+extraEnvVars:
+  - name: KAFKA_CFG_REPLICA_FETCH_MAX_BYTES
+    value: "317344026"
+persistence:
+  enabled: false
+rbac:
+  create: true
+externalAccess:
+  enabled: true
+  autoDiscovery:
+    enabled: true
+  service:
+    type: NodePort
+auth:
+  clientProtocol: sasl
+  externalClientProtocol: sasl
+  sasl:
+    mechanisms: plain
+    jaas:
+      interBrokerUser: test
+      interBrokerPassword: "123456"
+      clientUsers:
+        - test
+      clientPasswords:
+        - "123456"
+      zookeeperUser: test
+      zookeeperPassword: "123456"
+zookeeper:
+  enabled: true
+  persistence:
+    enabled: false
+  service:
+    type: NodePort
+  auth:
+    enabled: true
+    clientUser: test
+    clientPassword: "123456"
+    serverUsers: test
+    serverPasswords: "123456"
